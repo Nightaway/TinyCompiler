@@ -83,8 +83,14 @@ namespace tiny {
   T(BIT_NOT, "~", 0)                                                    \
 																																				\
   /* Keywords  */                    																		\
-  K(VAR, "var", 0)                                                  	  \
-                                                                        \
+  K(VAR, "var", 0)      																								\
+																																				\
+	/* STRING */                                            	  							\
+	T(STRING, NULL, 0)																												\
+																																				\
+	/* Int */																															\
+	T(INT, NULL, 0)        																							\
+                                                                				\
   /* Illegal token - not able to scan. */                               \
   T(ILLEGAL, "ILLEGAL", 0)                                              \
 																																				\
