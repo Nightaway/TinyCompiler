@@ -85,11 +85,11 @@ namespace tiny {
   /* Keywords  */                    																		\
   K(VAR, "var", 0)      																								\
 																																				\
-	/* STRING */                                            	  							\
-	T(STRING, NULL, 0)																												\
+	/* ID */                                            	  							\
+	T(ID, NULL, 0)																												\
 																																				\
-	/* Int */																															\
-	T(INT, NULL, 0)        																							\
+	/* Number */																													\
+	T(NUMBER, NULL, 0)        																						\
                                                                 				\
   /* Illegal token - not able to scan. */                               \
   T(ILLEGAL, "ILLEGAL", 0)                                              \

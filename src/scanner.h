@@ -48,9 +48,15 @@ namespace tiny {
 				Utf8CharacterStream *source_;
 				char c0_;
 
+  			// Whether there is a line terminator whitespace character after
+  			// the current token, and  before the next. Does not count newlines
+  			// inside multiline comments.
+  			bool has_line_terminator_before_next_;
+
 				void Advance() { c0_ = source_->Advance(); }
 				void scan();
-				
+
+				Token::Value ScannIdOrKeyword();
 		};
 
 	};

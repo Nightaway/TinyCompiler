@@ -17,13 +17,11 @@ const char* const Token::string_[NUM_TOKENS] = {
 };
 #undef T
 
-
 #define T(name, string, precedence) precedence,
 const int8_t Token::precedence_[NUM_TOKENS] = {
   TOKEN_LIST(T, T)
 };
 #undef T
-
 
 #define KT(a, b, c) 'T',
 #define KK(a, b, c) 'K',
