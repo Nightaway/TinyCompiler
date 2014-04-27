@@ -3,7 +3,7 @@
 #include "token.h"
 
 namespace tiny {
-	namespace internal {
+namespace internal {
 
 #define T(name, string, precedence) #name,
 const char* const Token::name_[NUM_TOKENS] = {
@@ -31,5 +31,4 @@ const char Token::token_type[] = {
 #undef KT
 #undef KK
 
-	};
-};
+}}

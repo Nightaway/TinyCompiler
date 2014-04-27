@@ -7,11 +7,16 @@
 #include <ctype.h>
 
 namespace tiny {
-	namespace internal {
+namespace internal {
 
-Scanner::Scanner(Utf8CharacterStream *source) : source_(source)
+Scanner::Scanner() 
 {
 	
+}
+
+void Scanner::Initialize(Utf8CharacterStream* source)
+{
+	source_ = source;
 }
 
 Token::Value Scanner::Next()
@@ -38,6 +43,11 @@ void Scanner::scan()
 					token = Token::WHITESPACE;
 		break;
 
+		case ';' :
+					Advance();
+					token = Token::SEMICOLON;
+		break;
+
 		case '=' :
 					Advance();
 					token = Token::ASSIGN;
@@ -46,6 +56,7 @@ void Scanner::scan()
 		case '+' :
 					Advance();
 					token = Token::ADD;
+		break;
 		default:
 				if (isalpha(c0_)) {
 					token = ScannIdOrKeyword();
@@ -71,15 +82,15 @@ Token::Value Scanner::ScannIdOrKeyword()
 			Advance();
 		}
 		buf[idx] = '\0';
-		printf("%c", c0_);
+		PushBack();
 
 		if (strcmp(buf, "var") == 0) {
 				token = Token::VAR;
 				return token;
-		} 
+		}
+		literalNext_ = std::string(buf, strlen(buf));
 		token = Token::ID;
 		return token;
 }
 
- 	};
-};
+}}

@@ -1,9 +1,8 @@
 #ifndef __TOKEN_H__
 #define __TOKEN_H__
 
-
 namespace tiny {
-	namespace internal {
+namespace internal { 
 		
 // TOKEN_LIST takes a list of 3 macros M, all of which satisfy the
 // same signature M(name, string, precedence), where name is the
@@ -86,7 +85,7 @@ namespace tiny {
   K(VAR, "var", 0)      																								\
 																																				\
 	/* ID */                                            	  							\
-	T(ID, NULL, 0)																												\
+	T(ID, "id", 0)																												\
 																																				\
 	/* Number */																													\
 	T(NUMBER, NULL, 0)        																						\
@@ -113,7 +112,7 @@ public:
     return name_[tok];
   }
 
- // Predicates
+  // Predicates
   static bool IsKeyword(Value tok) {
     return token_type[tok] == 'K';
   }
@@ -163,7 +162,9 @@ public:
 
   static Value ReverseCompareOp(Value op) {
     switch (op) {
-      case EQ: return EQ;
+      case EQ: return EQ;// Whether there is a line terminator whitespace character after
+  			// the current token, and  before the next. Does not count newlines
+  			// inside multiline comments.
       case NE: return NE;
       case LT: return GT;
       case GT: return LT;
@@ -203,6 +204,7 @@ public:
   static int Precedence(Value tok) {
     return precedence_[tok];
   }
+
  private:
   static const char* const name_[NUM_TOKENS];
   static const char* const string_[NUM_TOKENS];
@@ -210,7 +212,6 @@ public:
   static const char token_type[NUM_TOKENS];
 };
 
-	};
-};
+}}
 
 #endif
