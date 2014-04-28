@@ -88,7 +88,7 @@ namespace internal {
 	T(ID, "id", 0)																												\
 																																				\
 	/* Number */																													\
-	T(NUMBER, NULL, 0)        																						\
+	T(NUMBER, "num", 0)        																						\
                                                                 				\
   /* Illegal token - not able to scan. */                               \
   T(ILLEGAL, "ILLEGAL", 0)                                              \

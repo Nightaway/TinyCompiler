@@ -44,24 +44,24 @@ void Scanner::scan()
 		break;
 
 		case ';' :
-					Advance();
+					//Advance();
 					token = Token::SEMICOLON;
 		break;
 
 		case '=' :
-					Advance();
+					//Advance();
 					token = Token::ASSIGN;
 		break;
 
 		case '+' :
-					Advance();
+					//Advance();
 					token = Token::ADD;
 		break;
 		default:
 				if (isalpha(c0_)) {
 					token = ScannIdOrKeyword();
 				} if (isdigit(c0_)) {
-
+					token = ScanNumber();
 				} else if (c0_ < 0) {
 					token = Token::EOS;
 				}
@@ -70,6 +70,23 @@ void Scanner::scan()
 	} 
 	} while (token == Token::WHITESPACE);
 	next_ = token;
+}
+
+Token::Value Scanner::ScanNumber()
+{
+		int idx = 0;
+		char buf[255];
+		Token::Value token;
+		while (isdigit(c0_)) {
+			buf[idx++] = c0_;
+			Advance();
+		}
+		buf[idx] = '\0';
+		PushBack();
+
+	  literalNext_ = std::string(buf, strlen(buf));
+		token = Token::NUMBER;
+		return token;
 }
 
 Token::Value Scanner::ScannIdOrKeyword()

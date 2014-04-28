@@ -73,6 +73,7 @@ namespace internal {
 				void scan();
 
 				Token::Value ScannIdOrKeyword();
+				Token::Value ScanNumber();
 		};
 
 }}
