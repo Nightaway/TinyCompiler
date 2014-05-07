@@ -48,6 +48,16 @@ void Scanner::scan()
 					token = Token::SEMICOLON;
 		break;
 
+		case '(' :
+					//Advance();
+					token = Token::LPAREN;
+		break;
+
+		case ')' :
+					//Advance();
+					token = Token::RPAREN;
+		break;
+
 		case '=' :
 					//Advance();
 					token = Token::ASSIGN;
