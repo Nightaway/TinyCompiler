@@ -1,123 +1,496 @@
-#include "checks.h"
-#include "tinystdint.h"
-#include "token.h"
+#include "Scanner.h"
 
-#include "scanner.h"
+#include <stdio.h>
+#include <string.h>
 
-#include <ctype.h>
+//
+// number of Reserved Words
+//
+#define RWCOUNT 8
 
-namespace tiny {
-namespace internal {
-
-Scanner::Scanner() 
+//
+//Dictionary of Reserved Words
+//
+const Token RWTokens[RWCOUNT] =
 {
+	{IF,	 "if"},
+	{THEN,	 "then"},
+	{ELSE,	 "else"},
+	{END,	 "end"},
+	{REPEAT, "repeat"},
+	{UNTIL,	 "until"},
+	{READ,   "read"},
+	{WRITE,  "write"},
+};
+
+// the pointer to the stream of characters.
+char *pStream;
+
+// variable which store automa states
+int state;
+
+// line number
+int lineno = 1;
+
+// look up for Reserved Word, return the index of Dictionary if found it,
+// else return -1 indicates false.
+int lookupRW(const char *pRW)
+{
+	int i;
+	for (i = 0; i < RWCOUNT; ++i)
+	{
+		if (strcmp(RWTokens[i].stype, pRW) == 0)
+			return i;
+	}
+	return -1;
+}
+
+//
+
+void ungetToken(TokenType ttype)
+{
+	Token token = makeToken(ttype);
+	int len = strlen(token.stype);
+}
+
+void getTokenStream(Token *tokens, int count)
+{
+	int i;
+	for (i = 0; i < count; ++i)
+	{
+		tokens[i] = getToken();
+		if (tokens[i].ttype == ERROR || 
+			tokens[i].ttype == ENDFILE)
+			return ;
+	}
+}
+
+//
+Token makeToken(TokenType ttype)
+{
+	Token token;
+	token.lineno = lineno;
+	switch (ttype)
+	{
+	case IF :
+		token.ttype = IF;
+		strcpy(token.stype, "if");
+		token.val = 0;
+		break;
+
+	case THEN :
+		token.ttype = THEN;
+		strcpy(token.stype, "then");
+		token.val = 0;
+		break;
+
+	case ELSE :
+		token.ttype = ELSE;
+		strcpy(token.stype, "else");
+		token.val = 0;
+		break;
 	
+	case END :
+		token.ttype = END;
+		strcpy(token.stype, "end");
+		token.val = 0;
+		break;
+
+	case REPEAT :
+		token.ttype = REPEAT;
+		strcpy(token.stype, "repeat");
+		token.val = 0;
+		break;
+		
+	case UNTIL :
+		token.ttype = UNTIL;
+		strcpy(token.stype, "until");
+		token.val = 0;
+		break;
+	
+	case READ :
+		token.ttype = READ;
+		strcpy(token.stype, "read");
+		token.val = 0;
+		break;
+
+	case WRITE :
+		token.ttype = WRITE;
+		strcpy(token.stype, "write");
+		token.val = 0;
+		break;
+
+	case ADD :
+		token.ttype = ADD;
+		strcpy(token.stype, "+");
+		token.val = 0;
+		break;
+
+	case SUB :
+		token.ttype = SUB;
+		strcpy(token.stype, "-");
+		token.val = 0;
+		break;
+
+	case MUL :
+		token.ttype = MUL;
+		strcpy(token.stype, "*");
+		token.val = 0;
+		break;
+
+	case DIV :
+		token.ttype = DIV;
+		strcpy(token.stype, "/");
+		token.val = 0;
+		break;
+
+	case EQUAL :
+		token.ttype = EQUAL;
+		strcpy(token.stype, "=");
+		token.val = 0;
+		break;
+
+	case LESS :
+		token.ttype = LESS;
+		strcpy(token.stype, "<");
+		token.val = 0;
+		break;
+
+	case LPARENTHESE :
+		token.ttype = LPARENTHESE;
+		strcpy(token.stype, "(");
+		token.val = 0;
+		break;
+
+	case RPARENTHESE :
+		token.ttype = RPARENTHESE;
+		strcpy(token.stype, ")");
+		token.val = 0;
+		break;
+
+	case SEMICOLON :
+		token.ttype = SEMICOLON;
+		strcpy(token.stype, ";");
+		token.val = 0;
+		break;
+
+	case ASSIGN :
+		token.ttype = ASSIGN;
+		strcpy(token.stype, ":=");
+		token.val = 0;
+		break;
+	}
+	return token;
 }
 
-void Scanner::Initialize(Utf8CharacterStream* source)
+Token makeError(char pbuff[], int bufIndex)
 {
-	source_ = source;
+	Token token;
+	pbuff[bufIndex++] = *pStream; 
+	pbuff[bufIndex] = '\0';
+	sprintf(token.stype, "Error : Unrecognized token '%s'", pbuff);
+    token.lineno = lineno;
+	token.ttype = ERROR;
+	return token;
 }
 
-Token::Value Scanner::Next()
+Token getToken(void)
 {
-	Advance();
-	scan();
-	return next_;
-}
+	//
+	// automa states defination
+	//
+	enum {
+		S_START,
+		S_DONE,
+		S_ENDFILE,
 
-void Scanner::scan()
-{
-	Token::Value token;
-	do {
-	switch(c0_) {
-		case ' '  :
-		case '\t' :
-	        Advance();
-        	token = Token::WHITESPACE;
-		break;
+		S_INCOMMENT,
+		S_INNUM,
+		S_INID,
+		S_INASSIGN,
+	};
 
-		case '\n' :
-					Advance();
-					has_line_terminator_before_next_ = true;
-					token = Token::WHITESPACE;
-		break;
+	// used for saving error infomation
+	/*char bufError[40];*/
 
-		case ';' :
-					//Advance();
-					token = Token::SEMICOLON;
-		break;
+	// used for saving characters which being used in scanning
+	char pbuff[40];
+	int result;
 
-		case '(' :
-					//Advance();
-					token = Token::LPAREN;
-		break;
+	// index to pbuff
+	int bufIndex = 0;
 
-		case ')' :
-					//Advance();
-					token = Token::RPAREN;
-		break;
+	// token initalization
+	Token token = {0};
 
-		case '=' :
-					//Advance();
-					token = Token::ASSIGN;
-		break;
+	// Initalize the state for starting
+	state = S_START;
 
-		case '+' :
-					//Advance();
-					token = Token::ADD;
-		break;
-		default:
-				if (isalpha(c0_)) {
-					token = ScannIdOrKeyword();
-				} if (isdigit(c0_)) {
-					token = ScanNumber();
-				} else if (c0_ < 0) {
-					token = Token::EOS;
+	while (1)
+	{
+		switch (state)
+		{
+		case S_START:
+			switch (*pStream)
+			{
+			// Advancing the pointer,
+			// if character is blank or tab
+			//
+			case ' '  :
+			case '	' :
+				++pStream;
+				break;
+
+			// newline
+			case 0x0d :
+				++lineno;
+				++pStream;
+				break;
+			case '\n' :
+				++pStream;
+			break;
+
+			//
+			// comment '{' 
+			//
+			case '{' :
+				state = S_INCOMMENT;
+				++pStream;
+			break;
+
+			//
+			// Special Symbols
+			//
+			case '+' :
+				state = S_START;
+				++pStream;
+			return makeToken(ADD);
+
+			case '-' :
+				state = S_START;
+				++pStream;
+			return makeToken(SUB);
+
+			case '*' :
+				state = S_START;
+				++pStream;
+			return makeToken(MUL);
+
+			case '\\' :
+				state = S_START;
+				++pStream;
+			return makeToken(DIV);
+
+			case '=' :
+				state = S_START;
+				++pStream;
+			return makeToken(EQUAL);
+
+			case '<' :
+				state = S_START;
+				++pStream;
+			return makeToken(LESS);
+
+			case '(' :
+				state = S_START;
+				++pStream;
+			return makeToken(LPARENTHESE);
+
+			case ')' :
+				state = S_START;
+				++pStream;
+			return makeToken(RPARENTHESE);
+
+			case ';' :
+				state = S_START;
+				++pStream;
+			return makeToken(SEMICOLON);
+
+			//
+			// assign := 
+			//
+			case ':' :
+				++pStream;
+				state = S_INASSIGN;
+			break;
+
+			//
+			// end of file
+			//
+			case '#' :
+				pbuff[bufIndex++] = *pStream;
+				++pStream;
+				state = S_ENDFILE;
+			break;
+
+			default :
+				//
+				// in identifier [A-Za-z]+
+				//
+				if ((*pStream >= 'A' && *pStream <= 'Z') ||
+					(*pStream >= 'a' && *pStream <= 'z'))
+				{
+					pbuff[bufIndex++] = *pStream;
+					++pStream;
+					state = S_INID;
+					break;
 				}
-					
+				else
+				//
+				// in number      [0-9]+
+				//
+				if (*pStream >= '0' && *pStream <= '9')
+				{
+					pbuff[bufIndex++] = *pStream;
+					++pStream;
+					state = S_INNUM;
+					break;
+				}
+				else
+				{
+					// 
+					// return error token if characters can not be recognized 
+					//
+					return makeError(pbuff, bufIndex);
+				}
+			break;
+			}
 		break;
-	} 
-	} while (token == Token::WHITESPACE);
-	next_ = token;
-}
 
-Token::Value Scanner::ScanNumber()
-{
-		int idx = 0;
-		char buf[255];
-		Token::Value token;
-		while (isdigit(c0_)) {
-			buf[idx++] = c0_;
-			Advance();
-		}
-		buf[idx] = '\0';
-		PushBack();
+		//
+		// assign := 
+		//
+		case S_INASSIGN :
+			if (*pStream == '=')
+			{
+				++pStream;
+				return makeToken(ASSIGN);
+			}
+			else
+			{
+				// 
+				// return error token if characters can not be recognized
+				//
+				return makeError(pbuff, bufIndex);;
+			}
+		break;
 
-	  literalNext_ = std::string(buf, strlen(buf));
-		token = Token::NUMBER;
-		return token;
-}
+		//
+		// identifier
+		//
+		case S_INID :
 
-Token::Value Scanner::ScannIdOrKeyword()
-{
-		int idx = 0;
-		char buf[255];
-		Token::Value token;
-		while (isalpha(c0_)) {
-			buf[idx++] = c0_;
-			Advance();
-		}
-		buf[idx] = '\0';
-		PushBack();
+			//
+			// return the identifier or Reserved Word if next character not be a letter([A-Za-z]+).
+			//
+			if (!((*pStream >= 'A' && *pStream <= 'Z') ||
+				(*pStream >= 'a' && *pStream <= 'z')))
+			{
+				//
+				// looking up dictionary and if current string equals
+				// the Reserved Word that already in dictionary then 
+				// return the Reserved Word else return identifier
+				//
+				pbuff[bufIndex] = '\0';
+				result = lookupRW(pbuff);
+				if (result != -1)
+				{
+					// no need ++ pointer
+					token =  RWTokens[result];
+					token.lineno = lineno;
+					return token;
+				}
+				else
+				{
+					// Identifier
+					token.lineno = lineno;
+					token.ttype = IDENTIFIER;
+					strcpy_s(token.stype, 40, pbuff); 
+					return token;
+				}
+				// Nerver execute here
+			}
 
-		if (strcmp(buf, "var") == 0) {
-				token = Token::VAR;
+			// Do loop
+			pbuff[bufIndex++] = *pStream;
+			++pStream;
+		break;
+
+		//
+		// in number 
+		//
+		case S_INNUM :
+			//
+			// return number if next character is not in range [0 - 9]
+			//
+			if (!(*pStream >= '0' && *pStream <= '9'))
+			{
+				pbuff[bufIndex] = '\0';
+				token.lineno = lineno;
+				token.ttype = NUMBER;
+				strcpy(token.stype, pbuff); 
+				sscanf(pbuff, "%d", &token.val);
 				return token;
+			}
+
+			// Do loop 
+			pbuff[bufIndex++] = *pStream;
+			++pStream;
+		break;
+
+		//
+		// Just advance the pointer 
+		// until encounter a character of '}' then break and
+		// reback in S_STARTS state
+		//
+		case S_INCOMMENT :
+			// new line
+			if (*pStream == '\n')
+			{
+				++lineno;
+				++pStream;
+				break;
+			}
+			else
+			// end in comment
+			if (*pStream == '}')
+			{
+				++pStream;
+				state = S_START;
+				break;
+			}
+
+			++pStream;
+		break;
+
+		//
+		// Reserved for future using
+		//
+		case S_DONE :
+
+		break;
+
+		//
+		// return the token of ENDFILE if recognited "#e" which indicates end of a file
+		// else return error token
+		//
+		case S_ENDFILE :
+			if (*pStream == 'e')
+			{
+				token.lineno = lineno;
+				token.ttype = ENDFILE;
+				strcpy(token.stype, "end of file.");
+				return token;
+			}
+			else
+			{
+				//
+				// return error token
+				//
+				return makeError(pbuff, bufIndex);
+			}
+		break;
 		}
-		literalNext_ = std::string(buf, strlen(buf));
-		token = Token::ID;
-		return token;
+	}
 }
 
-}}

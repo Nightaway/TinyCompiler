@@ -1,81 +1,78 @@
-#ifndef __SCANNER_H__
-#define __SCANNER_H__
+#ifndef __SCANNER_H_
+#define __SCANNER_H_
 
-#include <string>
+/*
+		       Table of Tokens
+_________________________________________________
+| Reserved Words | Special Symbols | Other	    |										
+|________________|_________________|____________|
+|  if            | +               | number     |
+|  then          | -               | identifier |
+|  else          | *			   |			|
+|  end			 | /			   |			|
+|  repeat		 | =			   |			|
+|  until		 | <			   |			|
+|  read			 | (			   |			|
+|  write		 | )			   |			|
+|				 | ;			   |			|
+|				 | :=			   |			|
+|________________|_________________|____________|
 
-namespace tiny {
-namespace internal {
-		class Utf8CharacterStream {
-	
-			public:
-        Utf8CharacterStream() : pos_(0) {}
-				Utf8CharacterStream(const char *stream) 
-																							: pos_(0), 
-																								len_(strlen(stream)), 
-																								stream_(stream) 
-				{
+Regular Expression List :
+number = [0-9]+ ;       identifier = [a-zA-Z]+; 
 
-				}
+*/
 
-				inline char Advance()
-				{
-					if (pos_ < len_) {
-						return stream_[pos_++];
-					}
-				
-					return kEndOfInput;
- 				}
-	
-				inline void PushBack()
-				{
-					pos_--;
- 				}
+//
+//	token type defination 
+//
+typedef enum {
+	IF,
+	THEN,
+	ELSE,
+	END,
+	REPEAT,
+	UNTIL,
+	READ,
+	WRITE,
 
-				inline unsigned pos() { return pos_; }
-				inline unsigned length() { return len_; }
+	ADD,
+	SUB,
+	MUL,
+	DIV,
 
-			protected:
-				static const char kEndOfInput = -1;
+	EQUAL,
+	LESS,
+	LPARENTHESE,
+	RPARENTHESE,
+	SEMICOLON,
+	ASSIGN,
 
-				unsigned pos_;
-				unsigned len_;
-				const char *stream_;
+	NUMBER,
+	IDENTIFIER,
 
-				const char *buffer_cursor_;
-				const char *buffer_end_;
-		};
+	ENDFILE,
+	ERROR
+}TokenType;
 
-		class Scanner {
-			public:
-				Scanner();
-				void Initialize(Utf8CharacterStream* source);
+//
+// token attributes
+//
+typedef struct Token{
+	TokenType ttype;    // for TokenType
+	char stype[40];     // for string value
+	int val;		    // for integer value
+	int lineno;
+}Token;
 
-				Token::Value Next();
-				Token::Value Curr();
+//
+// return the token and increase the pointer to the stream 
+//
+Token getToken(void);
 
-				std::string GetLiteralNext() { return literalNext_; }
-		
-			private:
-				Token::Value next_;
-				Token::Value curr_;
-				Utf8CharacterStream *source_;
-				char c0_;
-				std::string literalNext_;
-				std::string literalCurr_;
+void getTokenStream(Token *tokens, int count);
 
-  			// Whether there is a line terminator whitespace character after
-  			// the current token, and  before the next. Does not count newlines
-  			// inside multiline comments.
-  			bool has_line_terminator_before_next_;
-
-				void Advance() { c0_ = source_->Advance(); }
-				void PushBack() { source_->PushBack(); }
-				void scan();
-
-				Token::Value ScannIdOrKeyword();
-				Token::Value ScanNumber();
-		};
-
-}}
+Token makeToken(TokenType ttype);
+Token makeError();
 
 #endif
