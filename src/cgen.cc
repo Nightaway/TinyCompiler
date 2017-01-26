@@ -4,6 +4,50 @@
 #include "code.h"
 #include "cgen.h"
 
+static char asm_code[1024];
+static int asm_code_idx = 0;
+
+static void emitConst(int val) {
+	const char code[] = "loadc %d\n";
+	int n = sprintf(asm_code + asm_code_idx, code, val);
+	//printf("%s", asm_code + asm_code_idx);
+	asm_code_idx += n;
+}
+
+static void emitId(char *id) {
+	emitConst(st_lookup(id)*16);
+	const char code[] = "load\n";
+	int n = sprintf(asm_code + asm_code_idx, code);
+	//printf("%s", asm_code + asm_code_idx);
+	asm_code_idx += n;
+}
+
+static void emitOp(int op) {
+	switch (op) {
+			case ADD:
+			const char code[] = "add\n";
+			int n = sprintf(asm_code + asm_code_idx, code);
+			//printf("%s", asm_code + asm_code_idx);
+			asm_code_idx += n;
+			break;
+	}
+}
+
+static void emitAssign(TreeNode *tree) {
+	const char code[] = "store\n";
+	int n = sprintf(asm_code + asm_code_idx, code);
+	//printf("%s", asm_code + asm_code_idx);
+	asm_code_idx += n;
+}
+
+static void emitWrite(TreeNode *tree) {
+	emitId(tree->attr.token.stype);
+	const char code[] = "call print\n";
+	int n = sprintf(asm_code + asm_code_idx, code);
+	//printf("%s", asm_code + asm_code_idx);
+	asm_code_idx += n;
+}
+
 static void cGen(TreeNode *tree);
 
 static void genStmt(TreeNode *tree)
@@ -26,42 +70,17 @@ static void genStmt(TreeNode *tree)
 
 	case AssignK:
 		p1 = tree->child[0];
-
+		emitConst(st_lookup(tree->attr.token.stype)*16);
 		cGen(p1);
-
-		switch (p1->nodekind)
-		{
-		int loc;
-		case StmtK:
-			switch(p1->kind.stmt)
-			{
-			case AssignK:
-
-				break;
-			}
-			break;
-
-		case ExpK:
-			switch(p1->kind.exp)
-			{
-			case ConstK:
-
-				break;
-			case IdK:
-
-				break;
-			case OpK:
-				break;
-			}
-			break;
-		}
-
-		break;
+		emitAssign(tree);
+	break;
 
 	case ReadK:
 		break;
 
 	case WriteK:
+		p1 = tree->child[0];
+		emitWrite(p1);
 		break;
 	default : break;
 	}
@@ -70,107 +89,31 @@ static void genStmt(TreeNode *tree)
 static void genExp(TreeNode *tree, TreeType ttype)
 {
 	TreeNode *t1, *t2;
-	int loc = 0;
-	int tempvar_loc = 0;
-
 	t1 = tree->child[0];
 	t2 = tree->child[1];
+	
 	switch (tree->kind.exp)
 	{
 	case ConstK:
+		emitConst(tree->attr.token.val);
 		break;
 
 	case IdK:
+		emitId(tree->attr.token.stype);
 		break;
 
 	case OpK:
 		genExp(t1, LEFT);
 		genExp(t2, RIGHT);
-
-		switch (t1->kind.exp)
-		{
-		case ConstK:
-			break;
-
-		case IdK:
-			break;
-
-		case OpK:
-			break;
-		}
-
-		switch (t2->kind.exp)
-		{
-		case ConstK:
-			break;
-
-		case IdK:
-			break;
-
-		case OpK:
-			break;
-		}
-
-		switch (ttype)
-		{
-		case ROOT:
-			switch (tree->attr.token.ttype)
-			{
-			case ADD:
-				break;
-			case SUB:
-				break;
-			case MUL:
-				break;
-			case DIV:
-				break;
-			}
+		emitOp(tree->attr.token.ttype);
 
 		break;
-
-		case LEFT:
-			switch (tree->attr.token.ttype)
-			{
-			case ADD:
-				break;
-			case SUB:
-
-				break;
-
-			case MUL:
-				break;
-
-			case DIV:
-				break;
-			}
-		break;
-
-		case RIGHT:
-			switch (tree->attr.token.ttype)
-			{
-			case ADD:
-				break;
-
-			case SUB:
-				break;
-
-			case MUL:
-				break;
-
-			case DIV:
-				break;
-			}
-		 break;
-		};
-
-	break;
 	}
 }
 
 static void cGen(TreeNode *tree)
 {
-	if (tree != NULL)
-	{
+	if (tree != NULL) {
 		switch (tree->nodekind)
 		{
 		case StmtK:
@@ -180,16 +123,15 @@ static void cGen(TreeNode *tree)
 		case ExpK:
 			genExp(tree, ROOT);
 			break;
-
-		default : break;
 		}
 		cGen(tree->sibling);
 	}
 }
 
 
-void codeGen(TreeNode *syntaxTree)
+char *codeGen(TreeNode *syntaxTree)
 {
 	cGen(syntaxTree);
+	return asm_code;
 }
 

@@ -6,6 +6,7 @@
 #include "analyzer.h"
 #include "cgen.h"
 #include "utility.h"
+#include "boo-vm/vm.h"
 
 /*
 		Դ�����ļ�
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
 	sourceCode = argv[1];
 
 	// ���к��ļ�׺�滻 etc. "example.txt" -> "example.tobj"
-	replaceFilenameExt(sourceCode, "tobj", objName);
+	replaceFilenameExt(sourceCode, "asm", objName);
 
 	// ǰ��  ����: Դ�����ļ��ַ���   �����������﷨�� 
 	front_end(sourceCode, &tree);
@@ -115,5 +116,12 @@ void front_end(const char *soureCode,
 void back_end(const char *objCode, 
 			  TreeNode *tree)
 {
-
+	char *asm_code = codeGen(tree);
+	printf("Assembler Code:\n");
+	printf("%s", asm_code);
+	printf("Reuslt:\n");
+	boovm::VM vm;
+	vm.Compile(asm_code, strlen(asm_code));
+	vm.Run();
+	printf("\n", asm_code);
 }
