@@ -122,7 +122,7 @@ void tokencpy(Token *dest, Token *src)
 {
 	dest->ttype = src->ttype;
 	dest->lineno = src->lineno;
-	strcpy_s(dest->stype, 40, src->stype);
+	strcpy(dest->stype, src->stype);
 	dest->val = src->val;
 }
 
@@ -473,7 +473,7 @@ TreeNode *assign_stmt(void)
 			}
 			else
 			{
-				printf_s("syntax error at line %d : missing ':=' \n", token.lineno);
+				printf("syntax error at line %d : missing ':=' \n", token.lineno);
 			}
 		}
 	}
@@ -504,7 +504,7 @@ TreeNode *read_stmt(void)
 			}
 			else
 			{
-				printf_s("syntax error at line %d : missing identifier \n", token.lineno);
+				printf("syntax error at line %d : missing identifier \n", token.lineno);
 			}
 	
 		}
@@ -746,7 +746,7 @@ TreeNode *makeConstNode(Token token)
 	TreeNode *constOp = makeNewNode();
 
 	constOp->attr.token.ttype = token.ttype;
-	strcpy_s(constOp->attr.token.stype, 40, token.stype);
+	strcpy(constOp->attr.token.stype, token.stype);
 	constOp->attr.token.val = token.val;
 	constOp->attr.token.lineno = token.lineno;
 	constOp->nodekind = ExpK;
@@ -760,7 +760,7 @@ TreeNode *makeOpNode(Token token)
 	TreeNode *opNode = makeNewNode();
 
 	opNode->attr.token.ttype = token.ttype;
-	strcpy_s(opNode->attr.token.stype, 40, token.stype);
+	strcpy(opNode->attr.token.stype, token.stype);
 	opNode->attr.token.val = token.val;
 	opNode->attr.token.lineno = token.lineno;
 	opNode->nodekind = ExpK;
@@ -774,7 +774,7 @@ TreeNode *makeIdNode(Token token)
 	TreeNode *idNode = makeNewNode();
 
 	idNode->attr.token.ttype = token.ttype;
-	strcpy_s(idNode->attr.token.stype, 40, token.stype);
+	strcpy(idNode->attr.token.stype, token.stype);
 	idNode->attr.token.val = token.val;
 	idNode->attr.token.lineno = token.lineno;
 	idNode->nodekind = ExpK;

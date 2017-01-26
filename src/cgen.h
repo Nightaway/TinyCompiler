@@ -7,6 +7,6 @@ typedef enum {
 	RIGHT
 }TreeType;
 
-void codeGen(TreeNode *syntaxTree, const char *codefile);
+void codeGen(TreeNode *syntaxTree);
 
 #endif

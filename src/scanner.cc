@@ -221,7 +221,8 @@ Token getToken(void)
 	int bufIndex = 0;
 
 	// token initalization
-	Token token = {0};
+	Token token;
+	memset(&token, 0, sizeof(Token));
 
 	// Initalize the state for starting
 	state = S_START;
@@ -405,7 +406,7 @@ Token getToken(void)
 					// Identifier
 					token.lineno = lineno;
 					token.ttype = IDENTIFIER;
-					strcpy_s(token.stype, 40, pbuff); 
+					strcpy(token.stype, pbuff); 
 					return token;
 				}
 				// Nerver execute here

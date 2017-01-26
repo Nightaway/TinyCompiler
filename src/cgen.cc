@@ -51,8 +51,6 @@ static void genStmt(TreeNode *tree)
 
 				break;
 			case OpK:
-				loc = st_lookup(tree->attr.token.stype);
-				emitMov_N(REG_EAX, loc);
 				break;
 			}
 			break;
@@ -80,12 +78,9 @@ static void genExp(TreeNode *tree, TreeType ttype)
 	switch (tree->kind.exp)
 	{
 	case ConstK:
-		//emitLOC(REG_EAX, tree->attr.token.val);
 		break;
 
 	case IdK:
-		//loc = st_lookup(tree->attr.token.stype);
-		//emitLOV_N(REG_EAX, loc);
 		break;
 
 	case OpK:
@@ -95,14 +90,9 @@ static void genExp(TreeNode *tree, TreeType ttype)
 		switch (t1->kind.exp)
 		{
 		case ConstK:
-			emitLOC(REG_EAX, t1->attr.token.val);
 			break;
 
 		case IdK:
-			loc = st_lookup(t1->attr.token.stype);
-			emitLOV_N(REG_EAX, loc);
-			tempvar_loc = mallocTempVar();
-			emitMov(REG_EAX, tempvar_loc, VTYPE_TEMP);
 			break;
 
 		case OpK:
@@ -112,12 +102,9 @@ static void genExp(TreeNode *tree, TreeType ttype)
 		switch (t2->kind.exp)
 		{
 		case ConstK:
-			emitLOC(REG_EBX, t2->attr.token.val);
 			break;
 
 		case IdK:
-			loc = st_lookup(t2->attr.token.stype);
-			emitLOV_N(REG_EBX, loc);
 			break;
 
 		case OpK:
@@ -126,29 +113,15 @@ static void genExp(TreeNode *tree, TreeType ttype)
 
 		switch (ttype)
 		{
-		int tempvar_loc;
 		case ROOT:
 			switch (tree->attr.token.ttype)
 			{
 			case ADD:
-				emitLOV(REG_EAX, 0, VTYPE_TEMP);
-				emitLOV(REG_EBX, 1, VTYPE_TEMP);
-				emitAdd(REG_EBX, REG_EAX);
-				freeTempVar();
-				freeTempVar();
 				break;
 			case SUB:
-
-
 				break;
 			case MUL:
-				emitLOV(REG_EAX, 0, VTYPE_TEMP);
-				emitLOV(REG_EBX, 1, VTYPE_TEMP);
-				emitMul(REG_EBX, REG_EAX);
-				freeTempVar();
-				freeTempVar();
 				break;
-
 			case DIV:
 				break;
 			}
@@ -159,18 +132,12 @@ static void genExp(TreeNode *tree, TreeType ttype)
 			switch (tree->attr.token.ttype)
 			{
 			case ADD:
-				emitAdd(REG_EBX, REG_EAX);
-				tempvar_loc = mallocTempVar();
-				emitMov(REG_EAX, tempvar_loc, VTYPE_TEMP);
 				break;
 			case SUB:
 
 				break;
 
 			case MUL:
-				emitMul(REG_EBX, REG_EAX);
-				tempvar_loc = mallocTempVar();
-				emitMov(REG_EAX, tempvar_loc, VTYPE_TEMP);
 				break;
 
 			case DIV:
@@ -182,18 +149,12 @@ static void genExp(TreeNode *tree, TreeType ttype)
 			switch (tree->attr.token.ttype)
 			{
 			case ADD:
-				emitAdd(REG_EAX, REG_EBX);
-				tempvar_loc = mallocTempVar();
-				emitMov(REG_EBX, tempvar_loc, VTYPE_TEMP);
 				break;
 
 			case SUB:
 				break;
 
 			case MUL:
-				emitMul(REG_EAX, REG_EBX);
-				tempvar_loc = mallocTempVar();
-				emitMov(REG_EBX, tempvar_loc, VTYPE_TEMP);
 				break;
 
 			case DIV:
@@ -227,17 +188,8 @@ static void cGen(TreeNode *tree)
 }
 
 
-void codeGen(TreeNode *syntaxTree, const char *codefile)
+void codeGen(TreeNode *syntaxTree)
 {
-	writeFileHeader();
-	writeVarSection();
 	cGen(syntaxTree);
-	fillCodeSection();
-	writeTempVarSection();
-	writeVarRefSection();
-	fillSection();
-	writeTempVarRefSection();
-	fillSection();
-	updateFileHeader();
 }
 

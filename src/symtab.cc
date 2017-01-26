@@ -25,7 +25,7 @@ void st_insert(char *name, int lineno, int loc)
 	if (l == NULL)
 	{
 		l = (BucketList *) malloc(sizeof(BucketList));
-		strcpy_s(l->name, 40, name);
+		strcpy(l->name, name);
 		l->pLines = (LineList *) malloc(sizeof(LineList));
 		l->pLines->lineno = lineno;
 		l->pLines->pNext = NULL;
