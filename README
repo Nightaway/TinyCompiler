@@ -1,3 +1,5 @@
 Tiny语言的编译器。
 
-g++ main.cc scanner.cc parser.cc  symtab.cc analyzer.cc cgen.cc utility.cc -o tiny
+Usage:
+make
+./tiny example1.txt
