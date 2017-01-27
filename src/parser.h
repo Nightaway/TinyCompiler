@@ -1,7 +1,7 @@
 #ifndef __PARSER_H_
 #define __PARSER_H_
 
-#include "Scanner.h"
+#include "scanner.h"
 
 typedef enum {StmtK, ExpK} NodeKind;
 typedef enum {IfK, RepeatK, AssignK, ReadK, WriteK} StmtKind;
