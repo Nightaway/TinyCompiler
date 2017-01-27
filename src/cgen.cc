@@ -23,11 +23,19 @@ static void emitId(char *id) {
 }
 
 static void emitOp(int op) {
+	int n = 0;
+	const char *code;
 	switch (op) {
 			case ADD:
-			const char code[] = "add\n";
-			int n = sprintf(asm_code + asm_code_idx, code);
+			code = "add\n";
+			n = sprintf(asm_code + asm_code_idx, code);
 			//printf("%s", asm_code + asm_code_idx);
+			asm_code_idx += n;
+			break;
+
+			case MUL:
+			code = "mul\n";
+			n = sprintf(asm_code + asm_code_idx, code);
 			asm_code_idx += n;
 			break;
 	}
