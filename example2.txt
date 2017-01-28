@@ -1,0 +1,4 @@
+x := 2;
+if 1 < x then
+    write x
+end

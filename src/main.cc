@@ -119,7 +119,7 @@ void back_end(const char *objCode,
 	char *asm_code = codeGen(tree);
 	printf("Assembler Code:\n");
 	printf("%s", asm_code);
-	printf("Reuslt:\n");
+	printf("\nReuslt:\n");
 	boovm::VM vm;
 	vm.Compile(asm_code, strlen(asm_code));
 	vm.Run();
