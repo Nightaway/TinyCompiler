@@ -1,5 +1,7 @@
 Tiny语言的编译器。
 
+08年学习编译原理时候的代码，很乱别见笑，完整的编译器，没有用任何工具，别忘了clone vm的代码到src目录下。
+
 Usage:
 make
 ./tiny example1.txt
