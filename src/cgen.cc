@@ -11,7 +11,6 @@ static int label_num = 0;
 static void emitConst(int val) {
 	const char code[] = "loadc %d\n";
 	int n = sprintf(asm_code + asm_code_idx, code, val);
-	//printf("%s", asm_code + asm_code_idx);
 	asm_code_idx += n;
 	asm_line_num++;
 }
@@ -20,7 +19,6 @@ static void emitId(char *id) {
 	emitConst(st_lookup(id)*16);
 	const char code[] = "load\n";
 	int n = sprintf(asm_code + asm_code_idx, code);
-	//printf("%s", asm_code + asm_code_idx);
 	asm_code_idx += n;
 	asm_line_num++;
 }
@@ -28,7 +26,6 @@ static void emitId(char *id) {
 static void emitJumpz(const char *label) {
 	const char code[] = "jumpz %s\n";
 	int n = sprintf(asm_code + asm_code_idx, code, label);
-	//printf("%s", asm_code + asm_code_idx);
 	asm_code_idx += n;
 	asm_line_num++;
 }
@@ -71,7 +68,6 @@ static void emitOp(int op) {
 static void emitAssign(TreeNode *tree) {
 	const char code[] = "store\n";
 	int n = sprintf(asm_code + asm_code_idx, code);
-	//printf("%s", asm_code + asm_code_idx);
 	asm_code_idx += n;
 	asm_line_num++;
 }
@@ -80,7 +76,6 @@ static void emitWrite(TreeNode *tree) {
 	emitId(tree->attr.token.stype);
 	const char code[] = "call print\n";
 	int n = sprintf(asm_code + asm_code_idx, code);
-	//printf("%s", asm_code + asm_code_idx);
 	asm_code_idx += n;
 	asm_line_num++;
 }
@@ -99,9 +94,7 @@ static void genStmt(TreeNode *tree)
 		p2 = tree->child[1];
 		p3 = tree->child[2];
 
-		//printf("==%d==\n", p1->nodekind);
-		//printf("==%d==\n", p2->nodekind);
-		//printf("==%d==\n", p3);
+
 		cGen(p1);
 		sprintf(temp_label_buff, "%d", label_num++);
 		emitJumpz(temp_label_buff);
@@ -113,8 +106,7 @@ static void genStmt(TreeNode *tree)
 	case RepeatK:
 		p1 = tree->child[0];
 		p2 = tree->child[1];
-		//printf("==%d==\n", p1->nodekind);
-		//printf("==%d==\n", p2->nodekind);
+
 		sprintf(temp_label_buff, "%d", label_num++);
 		emitLabel(temp_label_buff);
 		cGen(p1);
